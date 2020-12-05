@@ -19,20 +19,20 @@ using namespace chrono;
 
 int dp[3001][3001];
 
-int lenLcs(string &s,string &t,int i,int j,int ps){
+int lenLcs(string &s,string &t,int i,int j,int ps,int subtractor){
     if(i >= ps or j >= t.size()){
         return 0;
     }
-    if(dp[i][j]!=-1)
-        return dp[i][j];
+    if(dp[i-subtractor][j]!=-1)
+        return dp[i-subtractor][j];
     if(s[i] == t[j])
-        return dp[i][j] = 1 + lenLcs(s,t,i+1,j+1,ps);
+        return dp[i-subtractor][j] = 1 + lenLcs(s,t,i+1,j+1,ps,subtractor);
     else{
-        return dp[i][j] = max(lenLcs(s,t,i+1,j,ps),lenLcs(s,t,i,j+1,ps));
+        return dp[i-subtractor][j] = max(lenLcs(s,t,i+1,j,ps,subtractor),lenLcs(s,t,i,j+1,ps,subtractor));
     }
 }
 
-void getLCS(string &s,string &t,int length,vector<int> &indexing,int start){
+void getLCS(string &s,string &t,int length,vector<int> &indexing,int start,int subtractor){
 //    string res;
     int i = start,j = 0;
     while(length > 0){
@@ -40,7 +40,7 @@ void getLCS(string &s,string &t,int length,vector<int> &indexing,int start){
             indexing.push_back(i);
             i++;j++;length--;
         }else{
-            if(dp[i][j+1] > dp[i+1][j]){
+            if(dp[i-subtractor][j+1] > dp[i+1-subtractor][j]){
                 j++;
             }
             else{
@@ -85,11 +85,13 @@ void solve(string &a,string &b,unordered_map<int,int> &mp,vector<int> &orderings
     }
     getLcsIndex(a,b,asize,bsize,indexer,orderings);
     vector<pair<int,int> > nd;
+//    vector<pair<int,int> > nd1;
     int cnt = 0;
-    nd.reserve(1000);
+    nd.reserve(100000);
+//    nd1.reserve(2000);
     for(int i = 0;i<orderings.size()-1;i++){
         //cout<<orderings[i]<<"\n";
-        if(orderings.size() == 0)
+        if(orderings.empty())
             break;
         if(orderings[i] == orderings[i+1] - 1){
             cnt++;
@@ -104,14 +106,21 @@ void solve(string &a,string &b,unordered_map<int,int> &mp,vector<int> &orderings
         }
     }
     vector<int>indexed;
-    indexed.reserve(1000);
+    indexed.reserve(100000);
     for(auto x:nd){
         if(x.second - x.first<= 1)
             continue;
+        if(x.second - x.first >= 2900){
+            int tmp = x.second;
+            x.second = x.first + 2900;
+            if(tmp < 99999995)
+            nd.emplace_back(x.second + 1,tmp);
+        }
+//        nd1.emplace_back(x.first,x.second);
         memset(dp,-1,sizeof(dp));
-        int length = lenLcs(a,b,x.first,0,x.second+1);
+        int length = lenLcs(a,b,x.first,0,x.second+1,x.first);
         //cout<<length<<"\n";
-        getLCS(a,b,length,indexed,x.first);
+        getLCS(a,b,length,indexed,x.first,x.first);
     }
 
 //    unordered_map<int,int> mp;
@@ -127,6 +136,10 @@ void solve(string &a,string &b,unordered_map<int,int> &mp,vector<int> &orderings
             cout<<"_";
         }
     }
+//      for(int i = 0;i<a.size();i++){
+//
+//      }
+
     cout<<"\n";
 }
 
@@ -136,11 +149,13 @@ int32_t main(){
     cout.tie(NULL);
     unordered_map<int,int> mp;
     vector<int> orderings;
-    orderings.reserve(1000000);
-    mp.reserve(1000000);
+    orderings.reserve(10000000);
+    mp.reserve(10000000);
     string a,b;
     a.reserve(100000000);
     b.reserve(100000000);
+    a.clear();
+    b.clear();
     cin >> a >> b;
 //    a = "cool";
 //    b = "cool";
